@@ -15,16 +15,14 @@
   - name: install java-1.7.0-openjdk latest version
     action: yum pkg=java-1.7.0-openjdk state=latest
   - name: set alternatives up for java 1.7 openJdk
-    action: script ../../bash/javaAlternatives.sh  
+    action: script ../../bash/javaAlternatives.sh
+#  - name: add to PATH \$JAVA_HOME/bin
+#    action: lineinfile dest=/etc/profile state=present regexp='^export \PATH=$PATH:\$JAVA_HOME/bin' line="export PATH=$PATH:$JAVA_HOME/bin"  
   - name: install ant lastest version
     action: yum pkg=ant state=latest
-    name: install svn
-    action yum pkg=svn state=present
-    name: checkout exist-db
+  - name: install svn
+    action: yum pkg=svn state=present
+  - name: checkout exist-db
     action: command svn checkout ${existSvnUrl} ${existDir}
-    #
-  - #name: get eXist-db installer file
-    #action: get_url url=http://downloads.sourceforge.net/project/exist/Stable/2.0/eXist-db-setup-2.0-rev18252.jar?r=&ts=1364327013&use_mirror=iweb dest=/tmp/eXist-db-setup-2.0-rev18252.jar mode=0440
-  - #name: run eXist-db installer as command
-    #action: command /usr/bin/java -jar /tmp/eXist-db-setup-2.0-rev18252.jar -console
-  
+  - name: build existdb with javac in this location ${existDir}
+    action: script ../../bash/buildExistdb.sh ${existDir}
