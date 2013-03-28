@@ -3,3 +3,11 @@ downloads/
 /Usersepalmer.profile
 *.pui
 *.prj
+
+/b.tar
+/ansible/playbooks/getOracleJava.sh
+/e.tar
+/bash/existConsolePrompts.txt
+/bash/installOracleJava.sh
+/bash/javaAlternatives.sh
+/bash/notesFromJoeW.txt
