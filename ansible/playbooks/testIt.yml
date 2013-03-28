@@ -1,0 +1,25 @@
+---
+# test various things with ansible
+- hosts: targets
+  vars:
+    existSvnUrl: svn://svn.code.sf.net/p/exist/code/stable/eXist-2.0.x
+    existDir: /usr/local/exist2.0.x
+    existLn: /usr/local/exist
+    java_home: /usr/lib/jvm/java
+  user: ec2-user
+  sudo: yes
+
+
+  tasks:
+  - name: add EXIST_HOME to /etc/profile
+    action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$" 
+    ignore_errors: yes
+  - name: tail -n5 /etc/profile
+    action: command tail -n5 /etc/profile
+  - name: add ec2ExistEnv.sh to ec2-user home
+    action: template src=../templates/ec2ExistEnv.template dest=/home/ec2-user/ec2ExistEnv.sh mode=0555
+  - name: cat /home/ec2-user/ec2ExistEnv.sh
+    action: shell cat /home/ec2-user/ec2ExistEnv.sh
+  - name: source /etc/profile
+    action: shell source /etc/profile
+     

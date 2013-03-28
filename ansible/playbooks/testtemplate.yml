@@ -4,9 +4,12 @@
     avar: some value here
     destfile: ~/somefile.txt
     templatesrcfile: ../templates/test.template 
+    somelocalvar: My Name is Eric
   tasks:
   - name: remove the results of the last template substitution
     action: command rm ${destfile}
     ignore_errors: yes
   - name: do some template substitution on ${templatesrcfile} and produce ${destfile}
     action: template src=${templatesrcfile} dest=${destfile}
+  - name: cat ${destfile}
+    action: shell cat ${destfile}

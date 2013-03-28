@@ -7,3 +7,4 @@ template_path: {{ template_path }}
 template_fullpath: {{ template_fullpath }}
 template_run_date: {{ template_run_date }}
 ansible_managed: {{ ansible_managed }}
+somelocalvar: {{ somelocalvar }}

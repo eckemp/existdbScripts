@@ -7,6 +7,7 @@
     existSvnUrl: svn://svn.code.sf.net/p/exist/code/stable/eXist-2.0.x
     existDir: /usr/local/exist2.0.x
     existLn: /usr/local/exist
+    java_home: /usr/lib/jvm/java
   user: ec2-user
   sudo: yes
 
@@ -26,3 +27,13 @@
     action: command svn checkout ${existSvnUrl} ${existDir}
   - name: build existdb with javac in this location ${existDir}
     action: script ../../bash/buildExistdb.sh ${existDir}
+  - name: create a generic exist symbolic link
+    action: file: src=${existDir} dest=${existLn} state=link
+  - name: add EXIST_HOME to /etc/profile
+    action lineinfile backup=yes dest=/etc/profile insertafter=EOF state=present line="export EXIST_HOME=${existLn}" regexp="^export EXIST_HOME=${existLn}" 
+  - name: add EXIST_HOME to /etc/profile
+    action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$" 
+  - name: add ec2ExistEnv.sh to ec2-user home
+    action: template src=../templates/ec2ExistEnv.template dest=/home/ec2-user/ec2ExistEnv.sh mode=0555
+  - name: source /etc/profile
+    action: shell source /etc/profile

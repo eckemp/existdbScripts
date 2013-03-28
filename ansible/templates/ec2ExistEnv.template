@@ -1,0 +1,8 @@
+# ec2ExistEnv.template
+export EXIST_HOME={{ existLn }}
+# why can't I use $JAVA_HOME directly - try this again
+PATH=$PATH:{{ java_home }}/bin
+export PATH
+alias exist-start='sudo /usr/local/bin/exist start'
+alias exist-stop='sudo /usr/local/bin/exist stop'
+alias exist-status='sudo /usr/local/bin/exist status'
