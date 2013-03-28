@@ -1,0 +1,30 @@
+---
+# add sudo yum update 
+#	to update all yum pkg
+# see this http://livingtao.blogspot.com/2012/01/few-easy-steps-to-install-sunoracle-jdk.html
+- hosts: targets
+  vars:
+    existSvnUrl: svn://svn.code.sf.net/p/exist/code/stable/eXist-2.0.x
+    existDir: /usr/local/exist2.0.x
+    existLn: /usr/local/exist
+  user: ec2-user
+  sudo: yes
+
+
+  tasks:
+  - name: install java-1.7.0-openjdk latest version
+    action: yum pkg=java-1.7.0-openjdk state=latest
+  - name: set alternatives up for java 1.7 openJdk
+    action: script ../../bash/javaAlternatives.sh  
+  - name: install ant lastest version
+    action: yum pkg=ant state=latest
+    name: install svn
+    action yum pkg=svn state=present
+    name: checkout exist-db
+    action: command svn checkout ${existSvnUrl} ${existDir}
+    #
+  - #name: get eXist-db installer file
+    #action: get_url url=http://downloads.sourceforge.net/project/exist/Stable/2.0/eXist-db-setup-2.0-rev18252.jar?r=&ts=1364327013&use_mirror=iweb dest=/tmp/eXist-db-setup-2.0-rev18252.jar mode=0440
+  - #name: run eXist-db installer as command
+    #action: command /usr/bin/java -jar /tmp/eXist-db-setup-2.0-rev18252.jar -console
+  
