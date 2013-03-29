@@ -1,3 +1,10 @@
-[targets]
+# exist servers where the db is not
+# yet installed
+[naked-existdb]
   54.225.67.57
+  
+# exist servers that we assume are 
+#running or at least have existdb installed
+[running-existdb]
+  50.17.203.100
   

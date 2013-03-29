@@ -1,8 +1,21 @@
 ---
-# add sudo yum update 
-#	to update all yum pkg
-# see this http://livingtao.blogspot.com/2012/01/few-easy-steps-to-install-sunoracle-jdk.html
-- hosts: targets
+# apache 2 license
+# install exist-db on a system that does not yet have exist-db installed
+# because the data folder is embeded in the exist instance folder it
+# is NOT possible to upgrade exist-db using this playbook
+#
+# ------------------------------------
+# ------- USE AT YOUR OWN RISK -------
+# ------------------------------------
+#
+# TODO list
+#    parameterize
+#    break into modules that can be included
+#    add inet.d startup
+#    change sudoer file
+#    WHAT ELSE?
+#
+- hosts: naked-existdb
   vars:
     existSvnUrl: svn://svn.code.sf.net/p/exist/code/stable/eXist-2.0.x
     existDir: /usr/local/exist2.0.x
@@ -13,27 +26,48 @@
 
 
   tasks:
+  - name: find out of build of exist has already been successful
+    action: shell cat ${existDir}/buildExist.log | grep "BUILD SUCCESSFUL"
+    register: buildSuccess
+  
+  - name: test the register variable
+    debug: msg="'${buildSuccess.stdout}'.find("1") is the stdout message"
+
+# this works leave this here till be make use this code elsewhere
+  - name: test
+    debug: msg="test is successful"
+    when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+      
   - name: install java-1.7.0-openjdk latest version
     action: yum pkg=java-1.7.0-openjdk state=latest
+    
   - name: set alternatives up for java 1.7 openJdk
     action: script ../../bash/javaAlternatives.sh
-#  - name: add to PATH \$JAVA_HOME/bin
-#    action: lineinfile dest=/etc/profile state=present regexp='^export \PATH=$PATH:\$JAVA_HOME/bin' line="export PATH=$PATH:$JAVA_HOME/bin"  
+    
   - name: install ant lastest version
     action: yum pkg=ant state=latest
+    when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+    
   - name: install svn
     action: yum pkg=svn state=present
+    when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+    
   - name: checkout exist-db
     action: command svn checkout ${existSvnUrl} ${existDir}
+    when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+ 
   - name: build existdb with javac in this location ${existDir}
     action: script ../../bash/buildExistdb.sh ${existDir}
+    when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+    
   - name: create a generic exist symbolic link
-    action: file: src=${existDir} dest=${existLn} state=link
+    action: file src=${existDir} dest=${existLn} state=link
+    
   - name: add EXIST_HOME to /etc/profile
-    action lineinfile backup=yes dest=/etc/profile insertafter=EOF state=present line="export EXIST_HOME=${existLn}" regexp="^export EXIST_HOME=${existLn}" 
-  - name: add EXIST_HOME to /etc/profile
-    action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$" 
+    action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$"
+     
   - name: add ec2ExistEnv.sh to ec2-user home
     action: template src=../templates/ec2ExistEnv.template dest=/home/ec2-user/ec2ExistEnv.sh mode=0555
+    
   - name: source /etc/profile
     action: shell source /etc/profile
