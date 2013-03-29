@@ -22,8 +22,14 @@
   vars:
     existSvnUrl: svn://svn.code.sf.net/p/exist/code/stable/eXist-2.0.x
     existDir: /usr/local/exist2.0.x
-    existLn: /usr/local/exist
-    java_home: /usr/lib/jvm/java
+    existLn: /usr/local/existlatest
+    existShLn: /usr/local/exist
+    #java_home: /usr/lib/jvm/java
+    existJettyPort: 80
+    jettyConfFile: /usr/local/existlatest/tools/jetty/etc/jetty.xml
+    wrapperConfFile: /usr/local/existlatest/tools/wrapper/conf/wrapper.conf
+    # MBytes
+    existWrapperMaxMem: 464
     buildSucess: x
   user: ec2-user
   sudo: yes
@@ -58,7 +64,7 @@
     action: yum pkg=svn state=present
     when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
     
-  - name: checkout exist-db
+  - name: checkout exist-db from svn at ${existSvnUrl}
     action: command svn checkout ${existSvnUrl} ${existDir}
     when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
     
@@ -70,30 +76,49 @@
   - name: debug 1
     action: debug msg="1"
     
-  - name: create a generic exist symbolic link
+  - name: create a symbolic link for $EXIST_HOME as ${existLn} 
     action: file src="${existDir}" dest="${existLn}" state=link
     ignore_errors: True
-    
+
+  - name: create a link to the exist.sh file 
+    action: file src="${existDir}/tools/wrapper/bin/exist.sh" dest="${existShLn}" state=link
+    ignore_errors: True
+
+  - name: create a symbolic link to the exist.sh script for other uses
+    action: file src="${existLn}/tools/wrapper/bin/exist.sh" dest="/usr/local/bin/exist" state=link
+    ignore_errors: True    
+
+  - name: create a symbolic link to the exist.sh script for init.d
+    action: file src="${existLn}/tools/wrapper/bin/exist.sh" dest="/etc/init.d/exist" state=link
+    ignore_errors: True  
+
     # wonky alert - these debug messages let the ln -s get created 
   - name: debug 2 
     action: debug msg="2"
     
-    name: get the value of $JAVA_HOME
+    name: get the value of $JAVA_HOME for use later
     action: shell source /etc/profile; echo $JAVA_HOME
     register: actualJavaHome
     
-  - name: echo JAVA_HOME                                                  
+  - name: echo JAVA_HOME for debugging purposes                                                 
     action: debug msg=${actualJavaHome.stdout}                               
 
   - name: add EXIST_HOME to /etc/profile
     action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$"
      
-  - name: add ec2ExistEnv.sh to ec2-user home
+  - name: add templated ec2ExistEnv.sh to ec2-user home
     action: template src=../templates/ec2ExistEnv.template dest=/home/ec2-user/ec2ExistEnv.sh mode=0555
     
-  - name: source /etc/profile
+  - name: source /etc/profile so some env values get created
     action: shell source /etc/profile
     ignore_errors: True
     
   - name: create a /etc/rc.d/rc.local file with -rwxr-xr-x file permissions (this file starts exist on reboot) 
     action: template backup=yes src=../templates/ec2ExistRclocal.template dest=/etc/rc.d/rc.local mode=0755
+    
+  - name: set the wrapper max memory to ${existWrapperMaxMem} MB
+    action: lineinfile backup="yes" dest="${wrapperConfFile}" state=present line="wrapper.java.maxmemory=${existWrapperMaxMem}" regexp="^wrapper.java.maxmemory=\d+"
+    
+  - name: set the jetty wrapper port for http to ${existJettyPort}
+    action: lineinfile backup="yes" dest="${jettyConfFile}" state=present line='<Set name="port"><SystemProperty name="jetty.port" default="${existJettyPort}"/></Set>' regexp='<Set name="port"><SystemProperty\sname="jetty.port"\s'
+    

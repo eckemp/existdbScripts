@@ -1,10 +1,9 @@
 # ec2ExistEnv.template
+#leave this file here
+#/etc/profile uses this file each login
 export EXIST_HOME={{ existLn }}
 PATH=$PATH:{{ actualJavaHome.stdout }}/bin
 export PATH
 alias exist-start='sudo /usr/local/bin/exist start'
 alias exist-stop='sudo /usr/local/bin/exist stop'
 alias exist-status='sudo /usr/local/bin/exist status'
-# set exist to start on reboot
-# don't do this if it exists already
-ln -s $EXIST_HOME/tools/wrapper/bin/exist.sh /etc/init.d/exist
