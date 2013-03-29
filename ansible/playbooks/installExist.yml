@@ -21,6 +21,7 @@
     existDir: /usr/local/exist2.0.x
     existLn: /usr/local/exist
     java_home: /usr/lib/jvm/java
+    buildSucess: x
   user: ec2-user
   sudo: yes
 
@@ -28,7 +29,9 @@
   tasks:
   - name: find out of build of exist has already been successful
     action: shell cat ${existDir}/buildExist.log | grep "BUILD SUCCESSFUL"
+    ignore_errors: True
     register: buildSuccess
+   
   
   - name: test the register variable
     debug: msg="'${buildSuccess.stdout}'.find("1") is the stdout message"
@@ -63,6 +66,13 @@
   - name: create a generic exist symbolic link
     action: file src=${existDir} dest=${existLn} state=link
     
+    name: get the value of $JAVA_HOME
+    action: shell source /etc/profile; echo $JAVA_HOME
+    register: actualJavaHome
+    
+  - name: echo JAVA_HOME                                                  
+    debug: msg=${actualJavaHome.stdout}                               
+
   - name: add EXIST_HOME to /etc/profile
     action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$"
      
