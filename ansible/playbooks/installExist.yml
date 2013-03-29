@@ -13,6 +13,9 @@
 #    break into modules that can be included
 #    add inet.d startup
 #    change sudoer file
+#    sudoer changes
+#    change port to 80 or make firewall change
+#    memory settings
 #    WHAT ELSE?
 #
 - hosts: naked-existdb
@@ -58,20 +61,29 @@
   - name: checkout exist-db
     action: command svn checkout ${existSvnUrl} ${existDir}
     when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
- 
+    
   - name: build existdb with javac in this location ${existDir}
     action: script ../../bash/buildExistdb.sh ${existDir}
     when_string: ${buildSuccess.stdout} != 'BUILD SUCCESSFUL'
+
+    # wonky alert - these debug messages let the ln -s get created 
+  - name: debug 1
+    action: debug msg="1"
     
   - name: create a generic exist symbolic link
-    action: file src=${existDir} dest=${existLn} state=link
+    action: file src="${existDir}" dest="${existLn}" state=link
+    ignore_errors: True
+    
+    # wonky alert - these debug messages let the ln -s get created 
+  - name: debug 2 
+    action: debug msg="2"
     
     name: get the value of $JAVA_HOME
     action: shell source /etc/profile; echo $JAVA_HOME
     register: actualJavaHome
     
   - name: echo JAVA_HOME                                                  
-    debug: msg=${actualJavaHome.stdout}                               
+    action: debug msg=${actualJavaHome.stdout}                               
 
   - name: add EXIST_HOME to /etc/profile
     action: lineinfile backup="yes" dest="/etc/profile" insertafter="EOF" state=present line="source /home/ec2-user/ec2ExistEnv.sh" regexp="^source /home/ec2-user/ec2ExistEnv\.sh$"
@@ -81,3 +93,7 @@
     
   - name: source /etc/profile
     action: shell source /etc/profile
+    ignore_errors: True
+    
+  - name: create a /etc/rc.d/rc.local file with -rwxr-xr-x file permissions (this file starts exist on reboot) 
+    action: template backup=yes src=../templates/ec2ExistRclocal.template dest=/etc/rc.d/rc.local mode=0755

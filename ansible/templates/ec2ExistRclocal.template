@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+
+touch /var/lock/subsys/local
+EXIST_HOME={{ existLn }}
+echo 'Starting the eXist native XML database from within /etc/rc.d/rc.local ...'
+grep 'jetty.port' $EXIST_HOME/tools/jetty/etc/jetty.xml
+echo 'Stating with the following max memory (MB)'
+grep 'wrapper.java.maxmemory' $EXIST_HOME/tools/wrapper/wrapper.conf
+/etc/init.d/exist start
