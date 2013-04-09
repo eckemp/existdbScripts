@@ -6,3 +6,8 @@ https://docs.google.com/document/d/1zXR70LWta3W_jb-fWOCMItS7BU1n0hjQQkIRX7RRpHw/
 
 config file that drives which packages get installed
 
+research 
+https://www.mongohq.com/home
+https://mongolab.com/welcome/
+https://cloudant.com/
+https://cloudant.com/#home-pricing
